@@ -106,13 +106,19 @@ class TCC(IOSExtraction):
                 auth_value = row[3]
                 auth_value_desc = AUTH_VALUES.get(auth_value, "")
                 auth_reason = row[4]
-                auth_reason_desc = AUTH_REASONS.get(auth_reason, "unknown")
+                # auth_reason == 0 indicates no reason was recorded because the entry was made in previous format and upgraded to v3
+                auth_reason_desc = AUTH_REASONS.get(auth_reason, "none_recorded")
                 last_modified = convert_timestamp_to_iso(datetime.utcfromtimestamp((row[5])))
 
                 if service in ["kTCCServiceMicrophone", "kTCCServiceCamera"]:
                     device = "microphone" if service == "kTCCServiceMicrophone" else "camera"
-                    self.log.info("Found client \"%s\" with access %s to %s on %s by %s",
-                                  client, auth_value_desc, device, last_modified, auth_reason_desc)
+                    # Clearer auth_reason string for console output
+                    if auth_reason == 0:
+                        self.log.info("Found client \"%s\" with access %s to %s on %s with no auth_reason recorded",
+                                      client, auth_value_desc, device, last_modified)
+                    else:
+                        self.log.info("Found client \"%s\" with access %s to %s on %s by %s",
+                                      client, auth_value_desc, device, last_modified, auth_reason_desc)
 
                 self.results.append({
                     "service": service,
